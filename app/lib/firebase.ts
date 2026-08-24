@@ -4,10 +4,10 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDmwmnxQJhbzzDmHcvroDN6Errz58EmgOE",
-  authDomain: "northside-qurbani.firebaseapp.com",
-  projectId: "northside-qurbani",
-  storageBucket: "northside-qurbani.firebasestorage.app",
+  apiKey: "AIzaSyB7SZEhnT49WLmAwkyelx4i4J_qxiJKHIM",
+  authDomain: "northside-chickens.firebaseapp.com",
+  projectId: "northside-chickens",
+  storageBucket: "northside-chickens.firebasestorage.app",
   messagingSenderId: "522339181318",
   appId: "1:522339181318:web:b60ee1134380ee1f9bb487"
 };

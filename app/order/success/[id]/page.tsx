@@ -6,7 +6,13 @@ import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../../../lib/firebase";
 
-type WeightBreakdownItem = {
+/* =====================================================================
+   Shared design tokens — see app/page.tsx and app/order/page.tsx
+   ===================================================================== */
+const FONT_DISPLAY = "font-['Fraunces',_serif]";
+const FONT_MONO = "font-['IBM_Plex_Mono',_monospace]";
+
+type ProductBreakdownItem = {
   id?: string;
   label: string;
   price?: number | null;
@@ -14,47 +20,31 @@ type WeightBreakdownItem = {
   subtotal?: number | null;
 };
 
-type SheepPreferenceItem = {
-  sheepNo: number;
-  weightLabel: string;
-  cutPreferences: string[];
-};
+type Fulfilment = "collection" | "delivery";
 
 type OrderData = {
-  orderType?: "qurbani" | "live";
   fullName?: string;
   phone?: string;
   email?: string;
   quantity?: number;
-  liveQuantity?: number;
-  liveTotalKg?: number;
-  liveRatePerKg?: number | null;
-  preferredWeight?: string;
-  weightBreakdown?: WeightBreakdownItem[];
-  sheepPreferences?: SheepPreferenceItem[];
-  cutPreferences?: string[];
+  productSummary?: string;
+  productBreakdown?: ProductBreakdownItem[];
   notes?: string;
-  addServices?: boolean;
+  fulfilment?: Fulfilment;
   delivery?: boolean;
   deliveryArea?: string;
   deliveryAddress?: string;
-  fullDistributionCut?: boolean;
-  selectedSheepTagNumbers?: string[];
   basePriceTotal?: number;
-  servicesPerSheep?: number;
-  servicesTotal?: number;
-  deliveryPerSheep?: number;
   deliveryTotal?: number;
   totalPrice?: number;
-  livePricePerSheep?: number;
   pricingVisible?: boolean;
   paymentStatus?: string;
-  slaughtered?: boolean;
+  prepared?: boolean;
+  packed?: boolean;
   delivered?: boolean;
   cancelled?: boolean;
   cancelReason?: string;
   queueNumber?: number | null;
-  queueCheckedInAt?: any;
 };
 
 type AppSettings = {
@@ -67,13 +57,13 @@ type AppSettings = {
 };
 
 const DEFAULT_SETTINGS: AppSettings = {
-  accountName: "Northside Qurbani",
+  accountName: "Northside Chickens",
   bankName: "REPLACE WITH BANK NAME",
   accountNumber: "REPLACE WITH ACCOUNT NUMBER",
   accountType: "Business Cheque",
   branchCode: "REPLACE WITH BRANCH CODE",
   referenceHint:
-    "Use your name and surname as the payment reference, then send your proof of payment to Moulana Shaheed Bhabha(060 621 1418) or Yaqoob Sader(083 951 0300).",
+    "Use your name and surname as the payment reference, then send your proof of payment to Northside Chickens on WhatsApp.",
 };
 
 function formatZAR(value: number) {
@@ -88,67 +78,42 @@ function isPOAValue(value?: number | null) {
   return value === null || value === undefined || value <= 0;
 }
 
-function isPOARow(row: WeightBreakdownItem) {
+function isPOARow(row: ProductBreakdownItem) {
   return isPOAValue(row.price);
 }
 
 function hasPOAPricing(order: OrderData | null) {
-  if (!order || order.orderType === "live") return false;
-  return order.weightBreakdown?.some(isPOARow) || false;
+  if (!order) return false;
+  return order.productBreakdown?.some(isPOARow) || false;
 }
 
 function knownExtrasTotal(order: OrderData | null) {
   if (!order) return 0;
-  return (order.servicesTotal || 0) + (order.deliveryTotal || 0);
-}
-
-function hasUnconfirmedLivePricing(order: OrderData | null) {
-  return order?.orderType === "live" && order.pricingVisible === false;
+  return order.deliveryTotal || 0;
 }
 
 function totalDueValue(order: OrderData | null) {
   if (!order) return "—";
 
-  if (hasUnconfirmedLivePricing(order)) {
-    const delivery = order.deliveryTotal || 0;
-
-    if (delivery > 0) {
-      return `${formatZAR(delivery)} + live sheep price to be confirmed`;
-    }
-
-    return "Live sheep price to be confirmed by admin";
-  }
-
   if (hasPOAPricing(order)) {
     const extras = knownExtrasTotal(order);
-
     if (extras > 0) {
-      return `${formatZAR(extras)} + sheep price to be confirmed`;
+      return `${formatZAR(extras)} + product price to be confirmed`;
     }
-
-    return "Sheep price to be confirmed";
+    return "Product price to be confirmed";
   }
 
   return formatZAR(order.totalPrice || 0);
 }
 
-function SummaryRow({
-  label,
-  value,
-  strong = false,
-}: {
-  label: string;
-  value: string;
-  strong?: boolean;
-}) {
+/* ---------------- UI primitives (paper theme) ---------------- */
+function SummaryRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="flex flex-col gap-1 border-b border-white/10 py-3 last:border-b-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-      <span className={`text-sm ${strong ? "text-white/76" : "text-white/45"}`}>
-        {label}
-      </span>
+    <div className="flex flex-col gap-1 border-b border-dashed border-[#E4D9C4] py-3 last:border-b-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <span className={`text-sm ${strong ? "text-[#221E19]/80" : "text-[#221E19]/45"}`}>{label}</span>
       <span
-        className={`text-sm break-words sm:max-w-[60%] sm:text-right ${
-          strong ? "font-semibold text-white" : "font-medium text-white"
+        className={`${FONT_MONO} text-sm break-words sm:max-w-[60%] sm:text-right ${
+          strong ? "font-bold text-[#A93E2E]" : "font-medium text-[#221E19]"
         }`}
       >
         {value || "—"}
@@ -157,90 +122,39 @@ function SummaryRow({
   );
 }
 
-function InfoCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center text-sm text-white/75 lg:text-left">
-      {children}
-    </div>
-  );
-}
-
-function StatusBadge({
-  label,
-  variant,
-}: {
-  label: string;
-  variant: "emerald" | "amber" | "sky" | "rose" | "violet";
-}) {
+function StatusBadge({ label, variant }: { label: string; variant: "sage" | "gold" | "rust" | "ink" }) {
   const styles =
-    variant === "emerald"
-      ? "border-emerald-300/20 bg-emerald-300/10 text-emerald-200"
-      : variant === "amber"
-      ? "border-amber-300/20 bg-amber-300/10 text-amber-200"
-      : variant === "sky"
-      ? "border-sky-300/20 bg-sky-300/10 text-sky-200"
-      : variant === "rose"
-      ? "border-rose-300/20 bg-rose-300/10 text-rose-200"
-      : "border-violet-300/20 bg-violet-300/10 text-violet-200";
+    variant === "sage"
+      ? "border-[#6E7A55] bg-[#6E7A55]/10 text-[#6E7A55]"
+      : variant === "gold"
+      ? "border-[#C4872C] bg-[#C4872C]/15 text-[#8a5f1c]"
+      : variant === "rust"
+      ? "border-[#A93E2E] bg-[#A93E2E]/10 text-[#A93E2E]"
+      : "border-[#221E19] bg-[#221E19]/5 text-[#221E19]";
 
   return (
-    <div
-      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[11px] uppercase tracking-[0.24em] ${styles}`}
-    >
+    <div className={`${FONT_MONO} inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] ${styles}`}>
       {label}
     </div>
   );
 }
 
-async function copyToClipboard(value: string) {
-  if (!value) return false;
-
-  try {
-    if (navigator?.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(value);
-      return true;
-    }
-
-    const textArea = document.createElement("textarea");
-    textArea.value = value;
-    textArea.style.position = "fixed";
-    textArea.style.left = "-9999px";
-    textArea.style.top = "-9999px";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    const successful = document.execCommand("copy");
-    document.body.removeChild(textArea);
-
-    return successful;
-  } catch (error) {
-    console.error("Copy failed:", error);
-    return false;
-  }
-}
-
 function copyText(value: string) {
   if (!value) return false;
 
-  const scrollY = window.scrollY; // 👈 SAVE scroll position
-
+  const scrollY = window.scrollY;
   const textArea = document.createElement("textarea");
   textArea.value = value;
-
   textArea.setAttribute("readonly", "");
-  textArea.style.position = "fixed"; // 👈 IMPORTANT (not absolute)
+  textArea.style.position = "fixed";
   textArea.style.left = "-9999px";
   textArea.style.top = "0";
   textArea.style.opacity = "0";
-
   document.body.appendChild(textArea);
-
   textArea.focus();
   textArea.select();
 
   let copied = false;
-
   try {
     copied = document.execCommand("copy");
   } catch (error) {
@@ -248,67 +162,35 @@ function copyText(value: string) {
   }
 
   document.body.removeChild(textArea);
-
-  window.scrollTo(0, scrollY); // 👈 RESTORE scroll position
-
+  window.scrollTo(0, scrollY);
   return copied;
 }
 
-function CopyValueButton({ value }: { value: string }) {
+
+ 
+
+function CopyField({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false);
 
   function handleCopy(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
-
     copyText(value);
-
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className="inline-flex h-[40px] min-w-[156px] items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 text-[13px] font-medium text-white transition hover:bg-white/10"
-    >
-      {copied ? "Copied" : "Copy Reference"}
-    </button>
-  );
-}
-
-function CopyField({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  function handleCopy(e: React.MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    copyText(value);
-
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="rounded-[10px] border-2 border-[#221E19]/15 bg-[#FAF6EE] p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-[0.18em] text-white/40">{label}</p>
-          <p className="mt-2 break-all text-sm font-medium text-white">{value}</p>
+          <p className={`${FONT_MONO} text-xs uppercase tracking-[0.16em] text-[#221E19]/45`}>{label}</p>
+          <p className="mt-2 break-all text-sm font-medium text-[#221E19]">{value}</p>
         </div>
-
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-medium text-white transition hover:bg-white/10"
+          className="inline-flex shrink-0 items-center justify-center rounded-full border-2 border-[#221E19] bg-[#FFFDF8] px-4 py-2 text-xs font-medium text-[#221E19] transition hover:bg-[#221E19] hover:text-[#FAF6EE]"
         >
           {copied ? "Copied" : "Copy"}
         </button>
@@ -316,72 +198,45 @@ function CopyField({
     </div>
   );
 }
-function isLiveOrder(order: OrderData | null) {
-  return order?.orderType === "live";
-}
 
 function getWorkflowStatus(order: OrderData | null) {
-  if (!order) {
-    return { label: "Unavailable", variant: "rose" as const };
-  }
-  if (order.cancelled) {
-    return { label: "Booking Cancelled", variant: "rose" as const };
-  }
+  if (!order) return { label: "Unavailable", variant: "rust" as const };
+  if (order.cancelled) return { label: "Order Cancelled", variant: "rust" as const };
   if (order.delivered) {
     return {
-      label: order.orderType === "live" ? "Collected" : "Delivered",
-      variant: "emerald" as const,
+      label: order.fulfilment === "delivery" ? "Delivered" : "Collected",
+      variant: "sage" as const,
     };
   }
-  if (order.orderType === "live") {
-    return { label: "Pending", variant: "violet" as const };
-  }
-  if (order.slaughtered) {
-    return { label: "Slaughtered", variant: "sky" as const };
-  }
-  if ((order.queueNumber || 0) > 0) {
-    return { label: "In Queue", variant: "violet" as const };
-  }
-  return { label: "Unslaughtered", variant: "violet" as const };
+  if (order.packed) return { label: "Packed & Ready", variant: "gold" as const };
+  if (order.prepared) return { label: "Prepared", variant: "gold" as const };
+  if ((order.queueNumber || 0) > 0) return { label: "In Queue", variant: "ink" as const };
+  return { label: "Order Received", variant: "ink" as const };
 }
 
 function getPaymentStatus(order: OrderData | null) {
   const paid = (order?.paymentStatus || "pending").toLowerCase() === "paid";
-  return paid
-    ? { label: "Payment Received", variant: "emerald" as const }
-    : { label: "Payment Outstanding", variant: "amber" as const };
+  return paid ? { label: "Payment Received", variant: "sage" as const } : { label: "Payment Outstanding", variant: "gold" as const };
 }
 
-function totalSheep(order: OrderData | null) {
+function totalItems(order: OrderData | null) {
   if (!order) return 0;
-  if (order.orderType === "live") {
-    return order.liveQuantity || order.quantity || 0;
-  }
-  if (order.weightBreakdown?.length) {
-    return order.weightBreakdown.reduce((sum, row) => sum + (row.quantity || 0), 0);
+  if (order.productBreakdown?.length) {
+    return order.productBreakdown.reduce((sum, row) => sum + (row.quantity || 0), 0);
   }
   return order.quantity || 0;
 }
 
-function sheepSummary(order: OrderData | null) {
+function productSummaryText(order: OrderData | null) {
   if (!order) return "—";
-
-  if (order.orderType === "live") {
-    return `${order.liveQuantity || order.quantity || 0} live sheep`;
+  if (order.productBreakdown?.length) {
+    return order.productBreakdown.map((row) => `${row.quantity} × ${row.label}`).join(" • ");
   }
-
-  if (order.weightBreakdown?.length) {
-    return order.weightBreakdown
-      .map((row) => `${row.quantity} × ${row.label}`)
-      .join(" • ");
-  }
-
-  return order.preferredWeight || "—";
+  return order.productSummary || "—";
 }
 
-function orderReferenceValue(id: string, order: OrderData | null) {
-  const prefix = order?.orderType === "live" ? "LS" : "NQ";
-  return `${prefix}-${id.slice(0, 8).toUpperCase()}`;
+function orderReferenceValue(id: string) {
+  return `NP-${id.slice(0, 8).toUpperCase()}`;
 }
 
 export default function OrderSuccessPage() {
@@ -397,7 +252,7 @@ export default function OrderSuccessPage() {
     setOrderId(id);
 
     if (!id) {
-      setError("We could not find this booking.");
+      setError("We could not find this order.");
       setLoading(false);
       return;
     }
@@ -407,11 +262,10 @@ export default function OrderSuccessPage() {
       (orderSnap) => {
         if (!orderSnap.exists()) {
           if (typeof window !== "undefined") {
-            localStorage.removeItem("northside_last_order_id");
-            localStorage.removeItem("northside_last_order_reference");
+            localStorage.removeItem("poultry_last_order_id");
+            localStorage.removeItem("poultry_last_order_reference");
           }
-
-          setError("We could not find this booking.");
+          setError("We could not find this order.");
           setOrder(null);
           setLoading(false);
           return;
@@ -421,11 +275,10 @@ export default function OrderSuccessPage() {
 
         if (orderData.cancelled) {
           if (typeof window !== "undefined") {
-            localStorage.removeItem("northside_last_order_id");
-            localStorage.removeItem("northside_last_order_reference");
+            localStorage.removeItem("poultry_last_order_id");
+            localStorage.removeItem("poultry_last_order_reference");
           }
-
-          setError("We could not find this booking.");
+          setError("We could not find this order.");
           setOrder(null);
           setLoading(false);
           return;
@@ -437,19 +290,16 @@ export default function OrderSuccessPage() {
       },
       (err) => {
         console.error("Error loading order:", err);
-        setError("Something went wrong while loading the booking.");
+        setError("Something went wrong while loading the order.");
         setLoading(false);
       }
     );
 
     const unsubSettings = onSnapshot(
-      doc(db, "settings", "qurbani"),
+      doc(db, "settings", "poultry"),
       (settingsSnap) => {
         if (settingsSnap.exists()) {
-          setSettings({
-            ...DEFAULT_SETTINGS,
-            ...(settingsSnap.data() as Partial<AppSettings>),
-          });
+          setSettings({ ...DEFAULT_SETTINGS, ...(settingsSnap.data() as Partial<AppSettings>) });
         } else {
           setSettings(DEFAULT_SETTINGS);
         }
@@ -466,82 +316,65 @@ export default function OrderSuccessPage() {
     };
   }, []);
 
-  const liveOrder = isLiveOrder(order);
-  const orderReference = orderId ? orderReferenceValue(orderId, order) : "—";
+  const orderReference = orderId ? orderReferenceValue(orderId) : "—";
   const workflowStatus = getWorkflowStatus(order);
   const paymentStatus = getPaymentStatus(order);
-  const queueAssigned = !liveOrder && (order?.queueNumber || 0) > 0;
-  const selectedTagNumbers = order?.selectedSheepTagNumbers?.filter(Boolean) || [];
-  const hasSelectedTagNumbers = selectedTagNumbers.length > 0;
+  const queueAssigned = (order?.queueNumber || 0) > 0;
   const hasPOA = hasPOAPricing(order);
+  const isDelivery = order?.fulfilment === "delivery";
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#09070b] text-white">
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-[#09070b]" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,#120c12_0%,#0c090d_38%,#070509_100%)]" />
-        <div className="absolute right-[-12rem] top-[-12rem] h-[36rem] w-[36rem] rounded-full bg-[#c6a268]/[0.10] blur-3xl" />
-        <div className="absolute left-[-10rem] top-[10rem] h-[30rem] w-[30rem] rounded-full bg-[#f5efe6]/[0.06] blur-3xl" />
-        <div className="absolute bottom-[-18rem] left-[-12rem] h-[40rem] w-[40rem] rounded-full bg-[#7a5a45]/[0.06] blur-3xl" />
-      </div>
+    <main className="min-h-screen overflow-x-hidden bg-[#FAF6EE] font-['Work_Sans',sans-serif] text-[#221E19]">
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"
+        rel="stylesheet"
+      />
 
-      <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-7 sm:px-10">
-        <Link href="/" className="flex items-center gap-4">
-          <div className="grid h-[78px] w-[78px] place-items-center rounded-[22px] border border-white/10 bg-white/5 shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-            <Image
-              src="/logo4.png"
-              alt="Northside Qurbani"
-              width={65}
-              height={65}
-              className="object-contain"
-              priority
-            />
+      <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.035] bg-[radial-gradient(#221E19_1px,transparent_1px)] bg-[size:18px_18px]" />
+
+      <header className="mx-auto flex max-w-7xl items-center justify-between border-b-2 border-[#221E19] px-6 py-4 sm:px-10">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="grid h-16 w-16 place-items-center rounded-full border-2 border-[#221E19] bg-[#FFFDF8]">
+            <Image src="/logo4.png" alt="Northside Chickens" width={90} height={90} className="object-contain rounded-full" priority />
           </div>
           <div className="hidden sm:block">
-            <div className="text-[1.05rem] font-semibold tracking-[-0.02em] text-white">
-              Northside Qurbani
-            </div>
-            <div className="mt-1 text-sm text-white/55">Premium qurbani service</div>
+            <div className={`${FONT_DISPLAY} text-lg font-semibold leading-none`}>Northside Chickens</div>
+            <div className={`${FONT_MONO} mt-1 text-[10px] uppercase tracking-[0.24em] text-[#221E19]/50`}>Fresh Chicken · Done Right </div>
           </div>
         </Link>
 
         <Link
           href="/"
-          className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 text-sm font-medium text-white transition hover:bg-white/10"
+          className="inline-flex h-10 items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-transparent px-4 text-sm font-semibold text-[#221E19] transition hover:bg-[#221E19] hover:text-[#FAF6EE]"
         >
           Back Home
         </Link>
       </header>
 
-      <section className="mx-auto max-w-6xl overflow-x-hidden px-5 pb-16 pt-2 sm:px-8 lg:px-10 lg:pb-24 lg:pt-4">
+      <section className="mx-auto max-w-6xl overflow-x-hidden px-5 pb-16 pt-8 sm:px-8 lg:px-10 lg:pb-24">
         {loading ? (
-          <div className="rounded-[34px] border border-white/10 bg-white/[0.045] p-8 text-center shadow-[0_18px_48px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-            <p className="text-sm uppercase tracking-[0.24em] text-[#d8b67e]">Loading</p>
-            <h1 className="mt-4 text-[2rem] font-semibold text-white sm:text-[2.4rem]">
-              Loading your booking
-            </h1>
+          <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-8 text-center shadow-[6px_6px_0_0_#221E19]">
+            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#A93E2E]`}>Loading</p>
+            <h1 className={`${FONT_DISPLAY} mt-4 text-[2rem] font-semibold sm:text-[2.4rem]`}>Loading your order</h1>
           </div>
         ) : error ? (
-          <div className="rounded-[34px] border border-red-400/20 bg-red-400/10 p-8 text-center shadow-[0_18px_48px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-            <p className="text-sm uppercase tracking-[0.24em] text-red-200">
-              Booking unavailable
-            </p>
-            <h1 className="mt-4 text-[2rem] font-semibold text-white sm:text-[2.4rem]">
-              We could not load this booking
-            </h1>
-            <p className="mt-4 text-red-100/80">{error}</p>
+          <div className="rounded-[16px] border-2 border-[#A93E2E] bg-[#A93E2E]/10 p-8 text-center shadow-[6px_6px_0_0_#221E19]">
+            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#A93E2E]`}>Order unavailable</p>
+            <h1 className={`${FONT_DISPLAY} mt-4 text-[2rem] font-semibold sm:text-[2.4rem]`}>We could not load this order</h1>
+            <p className="mt-4 text-[#221E19]/70">{error}</p>
 
             <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Link
                 href="/order"
-                className="inline-flex h-[44px] min-w-[190px] items-center justify-center rounded-full bg-[#c6a268] px-6 text-[14px] font-semibold text-[#161015]"
+                className="inline-flex h-[44px] min-w-[190px] items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-[#C4872C] px-6 text-[14px] font-semibold text-[#221E19] shadow-[4px_4px_0_0_#221E19]"
               >
                 Place New Order
               </Link>
-
               <Link
                 href="/"
-                className="inline-flex h-[40px] min-w-[156px] items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 text-[13px] font-medium text-white"
+                className="inline-flex h-[40px] min-w-[156px] items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-transparent px-5 text-[13px] font-semibold text-[#221E19]"
               >
                 Back Home
               </Link>
@@ -550,166 +383,72 @@ export default function OrderSuccessPage() {
         ) : (
           <div className="grid gap-6 xl:grid-cols-12 xl:gap-8">
             <div className="xl:col-span-7">
-              <div className="rounded-[34px] border border-emerald-400/20 bg-emerald-400/10 p-6 shadow-[0_18px_48px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:p-8">
+              <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-6 shadow-[6px_6px_0_0_#221E19] sm:p-8">
                 <div className="flex w-full justify-center lg:justify-start">
-                  <StatusBadge
-                    label={liveOrder ? "Order Confirmed" : "Booking Confirmed"}
-                    variant="emerald"
-                  />
+                  <StatusBadge label="Order Confirmed" variant="sage" />
                 </div>
 
-                <h1 className="mt-5 text-center text-[2rem] font-semibold leading-[1.08] tracking-[-0.04em] text-white sm:text-[2.5rem] lg:text-left lg:text-[2.7rem]">
-                  {liveOrder ? (
-                    <>
-                      Your live sheep order
-                      <span className="mt-1 block">was received successfully.</span>
-                    </>
-                  ) : (
-                    <>
-                      Your qurbani booking
-                      <span className="mt-1 block">was received successfully.</span>
-                    </>
-                  )}
+                <h1 className={`${FONT_DISPLAY} mt-5 text-center text-[2rem] font-semibold leading-[1.08] tracking-tight sm:text-[2.5rem] lg:text-left lg:text-[2.7rem]`}>
+                  Your order
+                  <span className="mt-1 block">was received successfully.</span>
                 </h1>
 
-                {liveOrder ? (
-                  <p className="mx-auto mt-4 max-w-2xl text-center text-[0.98rem] leading-7 text-emerald-50/90 sm:text-[1.03rem] sm:leading-8 lg:mx-0 lg:text-left">
-                    Thank you. Please keep your order reference safe for payment, delivery coordination, and any future follow-up.
-                  </p>
-                ) : (
-                  <div className="mt-6 space-y-4">
-                    <div className="rounded-[24px] border border-[#c6a268]/30 bg-[#c6a268]/10 p-5">
-                      <p className="text-xs uppercase tracking-[0.22em] text-[#d8b67e]">
-                        What happens next
-                      </p>
+                <div className="mt-6 space-y-4">
+                  <div className="rounded-[10px] border-2 border-dashed border-[#C4872C] bg-[#C4872C]/10 p-5">
+                    <p className={`${FONT_MONO} text-xs uppercase tracking-[0.2em] text-[#8a5f1c]`}>What happens next</p>
 
-                      <div className="mt-4 space-y-4">
-                        <div className="flex items-start gap-3">
-                          <div className="mt-1 h-6 w-6 flex-shrink-0 rounded-full bg-[#c6a268] text-[12px] font-semibold text-black flex items-center justify-center">
-                            1
-                          </div>
-                          <p className="text-sm leading-6 text-white/80">
-                            Make payment using the banking details below.
-                          </p>
+                    <div className="mt-4 space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className={`${FONT_MONO} mt-1 h-6 w-6 flex-shrink-0 rounded-full border-2 border-[#221E19] bg-[#C4872C] text-[12px] font-bold text-[#221E19] flex items-center justify-center`}>
+                          1
                         </div>
+                        <p className="text-sm leading-6 text-[#221E19]/80">Make payment using the banking details below.</p>
+                      </div>
 
-                        <div className="flex items-start gap-3">
-                          <div className="mt-1 h-6 w-6 flex-shrink-0 rounded-full bg-[#c6a268] text-[12px] font-semibold text-black flex items-center justify-center">
-                            2
-                          </div>
-                          <p className="text-sm leading-6 text-white/80">
-                            Use your <span className="text-white font-semibold">name and surname</span> as the reference and send your proof of payment to{" "}
-                            <span className="text-white font-semibold">
-                              Moulana Shaheed Bhabha
-                            </span>{" "}
-                            or{" "}
-                            <span className="text-white font-semibold">
-                              Yaqoob Sader
-                            </span>.
-                          </p>
+                      <div className="flex items-start gap-3">
+                        <div className={`${FONT_MONO} mt-1 h-6 w-6 flex-shrink-0 rounded-full border-2 border-[#221E19] bg-[#C4872C] text-[12px] font-bold text-[#221E19] flex items-center justify-center`}>
+                          2
                         </div>
+                        <p className="text-sm leading-6 text-[#221E19]/80">
+                          Use your <span className="font-semibold text-[#221E19]">name and surname</span> as the reference and
+                          send your proof of payment to <span className="font-semibold text-[#221E19]">Northside Chickens</span> on WhatsApp.
+                        </p>
+                      </div>
 
-                        <div className="flex items-start gap-3">
-                          <div className="mt-1 h-6 w-6 flex-shrink-0 rounded-full bg-[#c6a268] text-[12px] font-semibold text-black flex items-center justify-center">
-                            3
-                          </div>
-                          <p className="text-sm leading-6 text-white/80">
-                            On Qurbani day, open this page and show it to the staff. Your{" "}
-                            <span className="text-white font-semibold">queue number</span>{" "}
-                            will appear below once assigned.
-                          </p>
-                        </div>
+                      <div className="flex items-start gap-3">
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
 
                 <div className="mt-6 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                   <StatusBadge label={workflowStatus.label} variant={workflowStatus.variant} />
                   <StatusBadge label={paymentStatus.label} variant={paymentStatus.variant} />
                 </div>
 
-                <div className="mt-6 rounded-[24px] border border-white/10 bg-black/10 p-5">
-                  <p className="text-sm text-white/50">
-                    {liveOrder ? "Order reference" : "Booking reference"}
-                  </p>
-                  <p className="mt-2 break-all text-[1.2rem] font-semibold tracking-[0.08em] text-[#d8b67e] sm:text-[1.4rem]">
-                    {orderReference}
-                  </p>
-                </div>
-
-                {hasSelectedTagNumbers ? (
-                  <div className="mt-6 rounded-[24px] border border-[#c6a268]/30 bg-[#c6a268]/10 p-5">
-                    <p className="text-xs uppercase tracking-[0.22em] text-[#d8b67e]">
-                      Selected Sheep Tag Numbers
-                    </p>
-
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      {selectedTagNumbers.map((tag) => (
-                        <div
-                          key={tag}
-                          className="inline-flex min-h-[46px] items-center justify-center rounded-full border border-white/10 bg-black/20 px-5 text-sm font-semibold tracking-[0.08em] text-white"
-                        >
-                          {tag}
-                        </div>
-                      ))}
+                {queueAssigned ? (
+                  <div className="mt-6 rounded-[10px] border-2 border-dashed border-[#C4872C] bg-[#C4872C]/10 p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className={`${FONT_DISPLAY} mt-2 text-[2rem] font-semibold leading-none sm:text-[2.4rem]`}>
+                          {order?.queueNumber}
+                        </p>
+                      </div>
                     </div>
-
-                    <p className="mt-4 text-sm leading-6 text-white/70">
-                      {liveOrder
-                        ? "Please keep these tag numbers ready for collection or delivery coordination."
-                        : "Please show these tag numbers to the team on qurbani day."}
-                    </p>
                   </div>
-                ) : null}
-
-                {!liveOrder ? (
-                  queueAssigned ? (
-                    <div className="mt-6 rounded-[24px] border border-[#c6a268]/30 bg-[#c6a268]/10 p-5">
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.22em] text-[#d8b67e]">
-                            Queue number assigned
-                          </p>
-                          <p className="mt-2 text-[2rem] font-semibold leading-none text-white sm:text-[2.4rem]">
-                            {order?.queueNumber}
-                          </p>
-                        </div>
-
-                        <div className="max-w-sm text-sm leading-6 text-white/72">
-                          Your booking has been added to the queue. Please keep this page open and use your queue number when called.
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mt-6 rounded-[24px] border border-white/10 bg-black/10 p-5">
-                      <p className="text-sm font-medium text-white/82">Queue status</p>
-                      <div className="mt-3 space-y-2 text-sm leading-6 text-white/65">
-                        <p>Queue details will be displayed here once assigned.</p>
-                        <p>If the status above reflects “Slaughtered”, your Qurbani is complete.</p>
-                      </div>
-                    </div>
-                  )
                 ) : (
-                  <div className="mt-6 rounded-[24px] border border-white/10 bg-black/10 p-5">
-                    <p className="text-sm font-medium text-white/82">Next step</p>
-                    <div className="mt-3 space-y-2 text-sm leading-6 text-white/65">
-                      <p>Your live sheep order has been recorded successfully.</p>
-                      <p>Staff will coordinate payment, delivery, or collection details from this order.</p>
-                    </div>
+                  <div>                    
                   </div>
                 )}
 
-                <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start lg:items-start">
-                  <CopyValueButton value={orderReference} />
-                </div>
+
               </div>
             </div>
 
             <div className="xl:col-span-5">
               <div className="space-y-5 xl:sticky xl:top-6">
-                <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-                  <p className="text-[11px] uppercase tracking-[0.26em] text-[#d8b67e] text-center lg:text-left">
+                <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-6 shadow-[6px_6px_0_0_#221E19]">
+                  <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
                     Banking details
                   </p>
 
@@ -720,184 +459,72 @@ export default function OrderSuccessPage() {
                     <CopyField label="Account type" value={settings.accountType} />
                     <CopyField label="Branch code" value={settings.branchCode} />
 
-                    <div className="rounded-2xl border border-[#c6a268]/20 bg-[#c6a268]/10 p-4">
-                      <p className="text-xs uppercase tracking-[0.18em] text-[#d8b67e]">
-                        Payment instruction
-                      </p>
-                      <p className="mt-2 text-sm font-medium leading-6 text-white">
-                        {settings.referenceHint}
-                      </p>
+                    <div className="rounded-[10px] border-2 border-dashed border-[#C4872C] bg-[#C4872C]/10 p-4">
+                      <p className={`${FONT_MONO} text-xs uppercase tracking-[0.16em] text-[#8a5f1c]`}>Payment instruction</p>
+                      <p className="mt-2 text-sm font-medium leading-6 text-[#221E19]">{settings.referenceHint}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-[34px] border border-white/10 bg-[#141016] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-                  <p className="text-[11px] uppercase tracking-[0.26em] text-[#d8b67e] text-center lg:text-left">
-                    {liveOrder ? "Order summary" : "Booking summary"}
-                  </p>
-                  <h2 className="mt-3 text-center text-[1.6rem] font-semibold text-white lg:text-left">
-                    Review your details
-                  </h2>
+                <div className="overflow-hidden rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] shadow-[6px_6px_0_0_#221E19]">
+                  <div className="border-b-2 border-dashed border-[#E4D9C4] p-6">
+                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
+                      Order ticket
+                    </p>
+                    <h2 className={`${FONT_DISPLAY} mt-2 text-center text-[1.6rem] font-semibold lg:text-left`}>
+                      Review your details
+                    </h2>
+                  </div>
 
-                  <div className="mt-6">
-                    <SummaryRow
-                      label="Order type"
-                      value={liveOrder ? "Live Sheep Purchase" : "Qurbani Service"}
-                    />
+                  <div className="px-6 py-2">
                     <SummaryRow label="Full name" value={order?.fullName || "—"} />
                     <SummaryRow label="Phone" value={order?.phone || "—"} />
                     <SummaryRow label="Email" value={order?.email || "—"} />
-                    <SummaryRow label="Total sheep" value={String(totalSheep(order))} />
+                    <SummaryRow label="Total items" value={String(totalItems(order))} />
+                    <SummaryRow label="Products" value={productSummaryText(order)} />
+                    <SummaryRow label="Fulfilment" value={isDelivery ? "Delivery" : "Collection"} />
+                    <SummaryRow label="Delivery area" value={isDelivery ? order?.deliveryArea || "—" : "Collection"} />
+                    <SummaryRow label="Delivery address" value={isDelivery ? order?.deliveryAddress || "—" : "Collection"} />
+                    <SummaryRow
+                      label="Payment status"
+                      value={(order?.paymentStatus || "pending").toLowerCase() === "paid" ? "Paid" : "Unpaid"}
+                    />
+                    <SummaryRow label="Workflow status" value={workflowStatus.label} />
+                  </div>
 
-                    {liveOrder ? (
-                      <>
-                        <SummaryRow label="Live sheep requested" value={sheepSummary(order)} />
-                        <SummaryRow
-                          label="Delivery"
-                          value={order?.delivery ? "Included" : "Not added"}
-                        />
-                        <SummaryRow
-                          label="Delivery area"
-                          value={order?.deliveryArea || "No delivery"}
-                        />
-                        <SummaryRow
-                          label="Delivery address"
-                          value={order?.deliveryAddress || "No delivery"}
-                        />
-                        <SummaryRow
-                          label="Payment status"
-                          value={
-                            (order?.paymentStatus || "pending").toLowerCase() === "paid"
-                              ? "Paid"
-                              : "Unpaid"
-                          }
-                        />
-                        <SummaryRow label="Workflow status" value={workflowStatus.label} />
-                        <SummaryRow
-                          label="Live sheep price"
-                          value={
-                            order?.pricingVisible === false
-                              ? "To be confirmed by admin"
-                              : formatZAR(order?.basePriceTotal || 0)
-                          }
-                        />
-                        <SummaryRow
-                          label="Delivery total"
-                          value={order?.deliveryTotal ? formatZAR(order.deliveryTotal) : "—"}
-                        />
-                        <SummaryRow
-                          label={order?.pricingVisible === false ? "Known charges" : "Total due"}
-                          value={totalDueValue(order)}
-                          strong
-                        />
-                      </>
-                    ) : (
-                      <>
-                        <SummaryRow label="Sheep selected" value={sheepSummary(order)} />
-                        <SummaryRow
-                          label="Slicing preference"
-                          value={
-                            order?.sheepPreferences?.length
-                              ? `${order.sheepPreferences.length} sheep configured`
-                              : order?.fullDistributionCut
-                              ? "Full sheep sliced for distribution"
-                              : "Standard"
-                          }
-                        />
-                        <SummaryRow
-                          label="Delivery"
-                          value={order?.delivery ? "Included" : "Not added"}
-                        />
-                        <SummaryRow
-                          label="Delivery area"
-                          value={order?.deliveryArea || "No delivery"}
-                        />
-                        <SummaryRow
-                          label="Delivery address"
-                          value={order?.deliveryAddress || "No delivery"}
-                        />
-                        <SummaryRow
-                          label="Payment status"
-                          value={
-                            (order?.paymentStatus || "pending").toLowerCase() === "paid"
-                              ? "Paid"
-                              : "Unpaid"
-                          }
-                        />
-                        <SummaryRow label="Workflow status" value={workflowStatus.label} />
-                        <SummaryRow
-                          label="Queue number"
-                          value={queueAssigned ? String(order?.queueNumber) : "Not assigned yet"}
-                        />
-                        <SummaryRow
-                          label={hasPOA ? "Known charges" : "Total due"}
-                          value={totalDueValue(order)}
-                          strong
-                        />
-                      </>
-                    )}
+                  <div className="m-6 mt-2 rounded-[10px] border-2 border-dashed border-[#221E19]/25 p-5">
+                    <SummaryRow
+                      label="Products total"
+                      value={order?.basePriceTotal ? formatZAR(order.basePriceTotal) : hasPOA ? "POA" : "—"}
+                    />
+                    <SummaryRow label="Delivery total" value={order?.deliveryTotal ? formatZAR(order.deliveryTotal) : "—"} />
+                    <SummaryRow label={hasPOA ? "Known charges" : "Total due"} value={totalDueValue(order)} strong />
                   </div>
                 </div>
 
-                {!liveOrder && order?.weightBreakdown?.length ? (
-                  <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-                    <p className="text-[11px] uppercase tracking-[0.26em] text-[#d8b67e] text-center lg:text-left">
-                      Weight breakdown
+                {order?.productBreakdown?.length ? (
+                  <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-6 shadow-[6px_6px_0_0_#221E19]">
+                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
+                      Product breakdown
                     </p>
 
                     <div className="mt-4 space-y-3">
-                      {order.weightBreakdown.map((row, index) => (
-                        <div
-                          key={row.id || `${row.label}-${index}`}
-                          className="rounded-2xl border border-white/10 bg-white/5 p-4"
-                        >
+                      {order.productBreakdown.map((row, index) => (
+                        <div key={row.id || `${row.label}-${index}`} className="rounded-[10px] border-2 border-[#221E19]/15 bg-[#FAF6EE] p-4">
                           <div className="flex items-start justify-between gap-4">
                             <div>
-                              <p className="text-sm font-semibold text-white">{row.label}</p>
-                              <p className="mt-1 text-sm text-white/55">{row.quantity} sheep</p>
+                              <p className={`${FONT_DISPLAY} text-sm font-semibold`}>{row.label}</p>
+                              <p className="mt-1 text-sm text-[#221E19]/55">{row.quantity} units</p>
                             </div>
-
                             <div className="text-right">
-                              <p className="text-sm text-white/55">
+                              <p className={`${FONT_MONO} text-sm text-[#221E19]/55`}>
                                 {isPOARow(row) ? "POA" : `${formatZAR(row.price || 0)} each`}
                               </p>
-                              <p className="mt-1 text-sm font-semibold text-white">
-                                {isPOARow(row)
-                                  ? "Price to be confirmed"
-                                  : formatZAR(row.subtotal || 0)}
+                              <p className={`${FONT_MONO} mt-1 text-sm font-semibold text-[#221E19]`}>
+                                {isPOARow(row) ? "Price to be confirmed" : formatZAR(row.subtotal || 0)}
                               </p>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
-                {!liveOrder && order?.sheepPreferences?.length ? (
-                  <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-                    <p className="text-[11px] uppercase tracking-[0.26em] text-[#d8b67e] text-center lg:text-left">
-                      Slicing preferences
-                    </p>
-
-                    <div className="mt-4 space-y-3">
-                      {order.sheepPreferences.map((item) => (
-                        <div
-                          key={`${item.sheepNo}-${item.weightLabel}`}
-                          className="rounded-2xl border border-white/10 bg-white/5 p-4"
-                        >
-                          <div>
-                            <p className="text-sm font-semibold text-white">
-                              Sheep {item.sheepNo}
-                            </p>
-                            <p className="mt-1 text-xs text-white/45">{item.weightLabel}</p>
-                          </div>
-
-                          <p className="mt-3 text-sm leading-6 text-white/75">
-                            {item.cutPreferences?.length
-                              ? item.cutPreferences.join(", ")
-                              : "No slicing preference selected"}
-                          </p>
                         </div>
                       ))}
                     </div>
@@ -905,24 +532,20 @@ export default function OrderSuccessPage() {
                 ) : null}
 
                 {order?.notes?.trim() ? (
-                  <div className="rounded-[30px] border border-white/10 bg-white/[0.045] p-6 shadow-[0_16px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-                    <p className="text-[11px] uppercase tracking-[0.26em] text-[#d8b67e] text-center lg:text-left">
+                  <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-6 shadow-[6px_6px_0_0_#221E19]">
+                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
                       Additional notes
                     </p>
-                    <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-white/75">
-                      {order.notes}
-                    </p>
+                    <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-[#221E19]/75">{order.notes}</p>
                   </div>
                 ) : null}
 
                 {order?.cancelled && order?.cancelReason?.trim() ? (
-                  <div className="rounded-[30px] border border-rose-400/20 bg-rose-400/10 p-6 shadow-[0_16px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-                    <p className="text-[11px] uppercase tracking-[0.26em] text-rose-200 text-center lg:text-left">
+                  <div className="rounded-[16px] border-2 border-[#A93E2E] bg-[#A93E2E]/10 p-6 shadow-[6px_6px_0_0_#221E19]">
+                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
                       Cancellation notes
                     </p>
-                    <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-rose-100/85">
-                      {order.cancelReason}
-                    </p>
+                    <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-[#221E19]/85">{order.cancelReason}</p>
                   </div>
                 ) : null}
               </div>
