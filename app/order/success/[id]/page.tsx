@@ -113,7 +113,7 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
       <span className={`text-sm ${strong ? "text-[#221E19]/80" : "text-[#221E19]/45"}`}>{label}</span>
       <span
         className={`${FONT_MONO} text-sm break-words sm:max-w-[60%] sm:text-right ${
-          strong ? "font-bold text-[#A93E2E]" : "font-medium text-[#221E19]"
+          strong ? "font-bold text-[#1F4B4A]" : "font-medium text-[#221E19]"
         }`}
       >
         {value || "—"}
@@ -125,15 +125,15 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
 function StatusBadge({ label, variant }: { label: string; variant: "sage" | "gold" | "rust" | "ink" }) {
   const styles =
     variant === "sage"
-      ? "border-[#6E7A55] bg-[#6E7A55]/10 text-[#6E7A55]"
+      ? "border-[#221E19] bg-[#57624C] text-[#FAF6EE]"
       : variant === "gold"
-      ? "border-[#C4872C] bg-[#C4872C]/15 text-[#8a5f1c]"
+      ? "border-[#221E19] bg-gradient-to-b from-[#C29A52] to-[#8F6023] text-[#221E19]"
       : variant === "rust"
-      ? "border-[#A93E2E] bg-[#A93E2E]/10 text-[#A93E2E]"
-      : "border-[#221E19] bg-[#221E19]/5 text-[#221E19]";
+      ? "border-[#221E19] bg-[#1F4B4A] text-[#FAF6EE]"
+      : "border-[#221E19] bg-[#221E19] text-[#FAF6EE]";
 
   return (
-    <div className={`${FONT_MONO} inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] ${styles}`}>
+    <div className={`${FONT_MONO} inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.2em] shadow-[3px_3px_0_0_#221E19] ${styles}`}>
       {label}
     </div>
   );
@@ -334,10 +334,10 @@ export default function OrderSuccessPage() {
 
       <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.035] bg-[radial-gradient(#221E19_1px,transparent_1px)] bg-[size:18px_18px]" />
 
-      <header className="mx-auto flex max-w-7xl items-center justify-between border-b-2 border-[#221E19] px-6 py-4 sm:px-10">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="grid h-16 w-16 place-items-center rounded-full border-2 border-[#221E19] bg-[#FFFDF8]">
-            <Image src="/logo4.png" alt="Northside Chickens" width={90} height={90} className="object-contain rounded-full" priority />
+      <header className="mx-auto flex max-w-7xl items-center justify-between border-b-2 border-[#221E19] px-6 py-3 sm:px-10 sm:py-4">
+        <Link href="/" className="flex items-center gap-4">
+          <div className="relative h-24 w-24 shrink-0 sm:h-28 sm:w-28">
+            <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
           </div>
           <div className="hidden sm:block">
             <div className={`${FONT_DISPLAY} text-lg font-semibold leading-none`}>Northside Chickens</div>
@@ -347,28 +347,29 @@ export default function OrderSuccessPage() {
 
         <Link
           href="/"
-          className="inline-flex h-10 items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-transparent px-4 text-sm font-semibold text-[#221E19] transition hover:bg-[#221E19] hover:text-[#FAF6EE]"
+          className="inline-flex h-10 items-center justify-center rounded-[8px] border-2 border-[#1F4B4A] bg-transparent px-4 text-sm font-semibold text-[#1F4B4A] transition hover:bg-[#1F4B4A] hover:text-[#FAF6EE]"
         >
           Back Home
         </Link>
       </header>
+      <div className="h-[3px] w-full bg-gradient-to-r from-[#A6752E] via-[#1F4B4A] to-[#57624C]" />
 
       <section className="mx-auto max-w-6xl overflow-x-hidden px-5 pb-16 pt-8 sm:px-8 lg:px-10 lg:pb-24">
         {loading ? (
           <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-8 text-center shadow-[6px_6px_0_0_#221E19]">
-            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#A93E2E]`}>Loading</p>
+            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#1F4B4A]`}>Loading</p>
             <h1 className={`${FONT_DISPLAY} mt-4 text-[2rem] font-semibold sm:text-[2.4rem]`}>Loading your order</h1>
           </div>
         ) : error ? (
-          <div className="rounded-[16px] border-2 border-[#A93E2E] bg-[#A93E2E]/10 p-8 text-center shadow-[6px_6px_0_0_#221E19]">
-            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#A93E2E]`}>Order unavailable</p>
+          <div className="rounded-[16px] border-2 border-[#1F4B4A] bg-[#1F4B4A]/10 p-8 text-center shadow-[6px_6px_0_0_#221E19]">
+            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#1F4B4A]`}>Order unavailable</p>
             <h1 className={`${FONT_DISPLAY} mt-4 text-[2rem] font-semibold sm:text-[2.4rem]`}>We could not load this order</h1>
             <p className="mt-4 text-[#221E19]/70">{error}</p>
 
             <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Link
                 href="/order"
-                className="inline-flex h-[44px] min-w-[190px] items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-[#C4872C] px-6 text-[14px] font-semibold text-[#221E19] shadow-[4px_4px_0_0_#221E19]"
+                className="inline-flex h-[44px] min-w-[190px] items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-gradient-to-b from-[#C29A52] to-[#8F6023] px-6 text-[14px] font-semibold text-[#221E19] shadow-[4px_4px_0_0_#221E19,0_14px_28px_-10px_rgba(166,117,46,0.6)]"
               >
                 Place New Order
               </Link>
@@ -394,19 +395,19 @@ export default function OrderSuccessPage() {
                 </h1>
 
                 <div className="mt-6 space-y-4">
-                  <div className="rounded-[10px] border-2 border-dashed border-[#C4872C] bg-[#C4872C]/10 p-5">
-                    <p className={`${FONT_MONO} text-xs uppercase tracking-[0.2em] text-[#8a5f1c]`}>What happens next</p>
+                  <div className="rounded-[10px] border-2 border-dashed border-[#A6752E] bg-[#A6752E]/10 p-5">
+                    <p className={`${FONT_MONO} text-xs uppercase tracking-[0.2em] text-[#6B4A1E]`}>What happens next</p>
 
                     <div className="mt-4 space-y-4">
                       <div className="flex items-start gap-3">
-                        <div className={`${FONT_MONO} mt-1 h-6 w-6 flex-shrink-0 rounded-full border-2 border-[#221E19] bg-[#C4872C] text-[12px] font-bold text-[#221E19] flex items-center justify-center`}>
+                        <div className={`${FONT_MONO} mt-1 h-6 w-6 flex-shrink-0 rounded-full border-2 border-[#221E19] bg-gradient-to-b from-[#C29A52] to-[#8F6023] text-[12px] font-bold text-[#221E19] flex items-center justify-center`}>
                           1
                         </div>
                         <p className="text-sm leading-6 text-[#221E19]/80">Make payment using the banking details below.</p>
                       </div>
 
                       <div className="flex items-start gap-3">
-                        <div className={`${FONT_MONO} mt-1 h-6 w-6 flex-shrink-0 rounded-full border-2 border-[#221E19] bg-[#C4872C] text-[12px] font-bold text-[#221E19] flex items-center justify-center`}>
+                        <div className={`${FONT_MONO} mt-1 h-6 w-6 flex-shrink-0 rounded-full border-2 border-[#221E19] bg-gradient-to-b from-[#C29A52] to-[#8F6023] text-[12px] font-bold text-[#221E19] flex items-center justify-center`}>
                           2
                         </div>
                         <p className="text-sm leading-6 text-[#221E19]/80">
@@ -427,7 +428,7 @@ export default function OrderSuccessPage() {
                 </div>
 
                 {queueAssigned ? (
-                  <div className="mt-6 rounded-[10px] border-2 border-dashed border-[#C4872C] bg-[#C4872C]/10 p-5">
+                  <div className="mt-6 rounded-[10px] border-2 border-dashed border-[#A6752E] bg-[#A6752E]/10 p-5">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className={`${FONT_DISPLAY} mt-2 text-[2rem] font-semibold leading-none sm:text-[2.4rem]`}>
@@ -448,7 +449,7 @@ export default function OrderSuccessPage() {
             <div className="xl:col-span-5">
               <div className="space-y-5 xl:sticky xl:top-6">
                 <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-6 shadow-[6px_6px_0_0_#221E19]">
-                  <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
+                  <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#1F4B4A] lg:text-left`}>
                     Banking details
                   </p>
 
@@ -459,8 +460,8 @@ export default function OrderSuccessPage() {
                     <CopyField label="Account type" value={settings.accountType} />
                     <CopyField label="Branch code" value={settings.branchCode} />
 
-                    <div className="rounded-[10px] border-2 border-dashed border-[#C4872C] bg-[#C4872C]/10 p-4">
-                      <p className={`${FONT_MONO} text-xs uppercase tracking-[0.16em] text-[#8a5f1c]`}>Payment instruction</p>
+                    <div className="rounded-[10px] border-2 border-dashed border-[#A6752E] bg-[#A6752E]/10 p-4">
+                      <p className={`${FONT_MONO} text-xs uppercase tracking-[0.16em] text-[#6B4A1E]`}>Payment instruction</p>
                       <p className="mt-2 text-sm font-medium leading-6 text-[#221E19]">{settings.referenceHint}</p>
                     </div>
                   </div>
@@ -468,7 +469,7 @@ export default function OrderSuccessPage() {
 
                 <div className="overflow-hidden rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] shadow-[6px_6px_0_0_#221E19]">
                   <div className="border-b-2 border-dashed border-[#E4D9C4] p-6">
-                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
+                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#1F4B4A] lg:text-left`}>
                       Order ticket
                     </p>
                     <h2 className={`${FONT_DISPLAY} mt-2 text-center text-[1.6rem] font-semibold lg:text-left`}>
@@ -504,7 +505,7 @@ export default function OrderSuccessPage() {
 
                 {order?.productBreakdown?.length ? (
                   <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-6 shadow-[6px_6px_0_0_#221E19]">
-                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
+                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#1F4B4A] lg:text-left`}>
                       Product breakdown
                     </p>
 
@@ -533,7 +534,7 @@ export default function OrderSuccessPage() {
 
                 {order?.notes?.trim() ? (
                   <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-6 shadow-[6px_6px_0_0_#221E19]">
-                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
+                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#1F4B4A] lg:text-left`}>
                       Additional notes
                     </p>
                     <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-[#221E19]/75">{order.notes}</p>
@@ -541,8 +542,8 @@ export default function OrderSuccessPage() {
                 ) : null}
 
                 {order?.cancelled && order?.cancelReason?.trim() ? (
-                  <div className="rounded-[16px] border-2 border-[#A93E2E] bg-[#A93E2E]/10 p-6 shadow-[6px_6px_0_0_#221E19]">
-                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
+                  <div className="rounded-[16px] border-2 border-[#1F4B4A] bg-[#1F4B4A]/10 p-6 shadow-[6px_6px_0_0_#221E19]">
+                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#1F4B4A] lg:text-left`}>
                       Cancellation notes
                     </p>
                     <p className="mt-4 whitespace-pre-wrap text-sm leading-6 text-[#221E19]/85">{order.cancelReason}</p>

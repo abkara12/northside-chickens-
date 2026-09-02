@@ -23,9 +23,9 @@ const INK = "#221E19";
 const PAPER = "#FAF6EE";
 const CARD = "#FFFDF8";
 const LINE = "#E4D9C4";
-const GOLD = "#C4872C";
-const RUST = "#A93E2E";
-const SAGE = "#6E7A55";
+const GOLD = "#A6752E";
+const RUST = "#1F4B4A";
+const SAGE = "#57624C";
 
 const DELIVERY_FEE = 60;
 
@@ -184,7 +184,7 @@ function Label({
   return (
     <label htmlFor={htmlFor} className="mb-2 block text-sm font-medium text-[#221E19]/80">
       {children}
-      {required ? <span className="ml-1 text-[#A93E2E]">*</span> : null}
+      {required ? <span className="ml-1 text-[#1F4B4A]">*</span> : null}
     </label>
   );
 }
@@ -219,10 +219,10 @@ function Input({
         placeholder={placeholder}
         disabled={disabled}
         className={`h-12 w-full rounded-[8px] border-2 bg-[#FFFDF8] px-4 text-sm text-[#221E19] outline-none transition placeholder:text-[#221E19]/30 disabled:cursor-not-allowed disabled:opacity-60 ${
-          error ? "border-[#A93E2E]" : "border-[#221E19]/15 focus:border-[#221E19]"
+          error ? "border-[#1F4B4A]" : "border-[#221E19]/15 focus:border-[#221E19]"
         }`}
       />
-      {error ? <p className="mt-2 text-xs text-[#A93E2E]">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs text-[#1F4B4A]">{error}</p> : null}
     </div>
   );
 }
@@ -254,10 +254,10 @@ function TextArea({
         rows={rows}
         disabled={disabled}
         className={`w-full rounded-[8px] border-2 bg-[#FFFDF8] px-4 py-3 text-sm text-[#221E19] outline-none transition placeholder:text-[#221E19]/30 disabled:cursor-not-allowed disabled:opacity-60 ${
-          error ? "border-[#A93E2E]" : "border-[#221E19]/15 focus:border-[#221E19]"
+          error ? "border-[#1F4B4A]" : "border-[#221E19]/15 focus:border-[#221E19]"
         }`}
       />
-      {error ? <p className="mt-2 text-xs text-[#A93E2E]">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs text-[#1F4B4A]">{error}</p> : null}
     </div>
   );
 }
@@ -266,7 +266,7 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
   return (
     <div className="flex items-start justify-between gap-4 border-b border-dashed border-[#E4D9C4] py-3 last:border-b-0">
       <span className={`text-sm ${strong ? "text-[#221E19]/80" : "text-[#221E19]/45"}`}>{label}</span>
-      <span className={`${FONT_MONO} text-right text-sm ${strong ? "font-bold text-[#A93E2E]" : "font-medium text-[#221E19]"}`}>
+      <span className={`${FONT_MONO} text-right text-sm ${strong ? "font-bold text-[#1F4B4A]" : "font-medium text-[#221E19]"}`}>
         {value || "—"}
       </span>
     </div>
@@ -284,7 +284,7 @@ function StockPill({ stockLeft, isSoldOut }: { stockLeft: number | null; isSoldO
   return (
     <span
       className={`${FONT_MONO} inline-flex rounded-full border-2 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${
-        isSoldOut ? "border-[#A93E2E] bg-[#A93E2E]/10 text-[#A93E2E]" : "border-[#6E7A55] bg-[#6E7A55]/10 text-[#6E7A55]"
+        isSoldOut ? "border-[#1F4B4A] bg-[#1F4B4A]/10 text-[#1F4B4A]" : "border-[#57624C] bg-[#57624C]/10 text-[#57624C]"
       }`}
     >
       {isSoldOut ? "Sold out" : `${stockLeft} left`}
@@ -350,7 +350,7 @@ function ProductRowCard({
             onChange={(e) => onProductChange(e.target.value)}
             disabled={disabled}
             className={`h-12 w-full rounded-[8px] border-2 bg-[#FFFDF8] px-4 text-sm text-[#221E19] outline-none transition disabled:cursor-not-allowed disabled:opacity-60 ${
-              error ? "border-[#A93E2E]" : "border-[#221E19]/15 focus:border-[#221E19]"
+              error ? "border-[#1F4B4A]" : "border-[#221E19]/15 focus:border-[#221E19]"
             }`}
           >
             <option value="" disabled>
@@ -362,7 +362,7 @@ function ProductRowCard({
               </option>
             ))}
           </select>
-          {error ? <p className="mt-2 text-xs text-[#A93E2E]">{error}</p> : null}
+          {error ? <p className="mt-2 text-xs text-[#1F4B4A]">{error}</p> : null}
         </div>
 
         <div>
@@ -407,7 +407,7 @@ function FulfilmentCard({
       type="button"
       onClick={onClick}
       className={`rounded-[10px] border-2 border-[#221E19] p-5 text-left transition ${
-        active ? "bg-[#C4872C]/20 shadow-[4px_4px_0_0_#221E19]" : "bg-[#FFFDF8] hover:bg-[#221E19]/[0.03]"
+        active ? "bg-gradient-to-b from-[#C29A52]/25 to-[#8F6023]/15 shadow-[4px_4px_0_0_#221E19]" : "bg-[#FFFDF8] hover:bg-[#221E19]/[0.03]"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -435,7 +435,7 @@ function PrimaryButton({
   return (
     <button
       {...props}
-      className={`inline-flex h-[46px] items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-[#C4872C] px-7 text-[14px] font-semibold text-[#221E19] shadow-[4px_4px_0_0_#221E19] transition active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 sm:text-[15px] ${className}`}
+      className={`inline-flex h-[46px] items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-gradient-to-b from-[#C29A52] to-[#8F6023] px-7 text-[14px] font-semibold text-[#221E19] shadow-[4px_4px_0_0_#221E19,0_14px_28px_-10px_rgba(166,117,46,0.6)] transition hover:brightness-105 active:translate-x-1 active:translate-y-1 active:shadow-none disabled:cursor-not-allowed disabled:opacity-60 sm:text-[15px] ${className}`}
     >
       {children}
     </button>
@@ -446,7 +446,7 @@ function SecondaryLink({ href, children }: { href: string; children: ReactNode }
   return (
     <Link
       href={href}
-      className="inline-flex h-[42px] items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-transparent px-6 text-[13px] font-semibold text-[#221E19] transition hover:bg-[#221E19] hover:text-[#FAF6EE] sm:text-[14px]"
+      className="inline-flex h-[42px] items-center justify-center rounded-[8px] border-2 border-[#1F4B4A] bg-transparent px-6 text-[13px] font-semibold text-[#1F4B4A] transition hover:bg-[#1F4B4A] hover:text-[#FAF6EE] sm:text-[14px]"
     >
       {children}
     </Link>
@@ -780,10 +780,10 @@ export default function OrderPage() {
 
       <div className="pointer-events-none fixed inset-0 -z-10 opacity-[0.035] bg-[radial-gradient(#221E19_1px,transparent_1px)] bg-[size:18px_18px]" />
 
-      <header className="mx-auto flex max-w-7xl items-center justify-between border-b-2 border-[#221E19] px-6 py-4 sm:px-10">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="grid h-16 w-16 place-items-center rounded-full border-2 border-[#221E19] bg-[#FFFDF8]">
-            <Image src="/logo4.png" alt="Northside Chickens" width={90} height={90} className="object-contain rounded-full" priority />
+      <header className="mx-auto flex max-w-7xl items-center justify-between border-b-2 border-[#221E19] px-6 py-3 sm:px-10 sm:py-4">
+        <Link href="/" className="flex items-center gap-4">
+          <div className="relative h-24 w-24 shrink-0 sm:h-28 sm:w-28">
+            <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
           </div>
           <div className="hidden sm:block">
             <div className={`${FONT_DISPLAY} text-lg font-semibold leading-none`}>Northside Chickens</div>
@@ -792,18 +792,19 @@ export default function OrderPage() {
 
         <SecondaryLink href="/">Back Home</SecondaryLink>
       </header>
+      <div className="h-[3px] w-full bg-gradient-to-r from-[#A6752E] via-[#1F4B4A] to-[#57624C]" />
 
       <section className="mx-auto max-w-7xl px-6 pb-16 pt-8 sm:px-10 lg:pb-24">
         {!readyToRender ? (
           <div className="rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] p-8 text-center shadow-[6px_6px_0_0_#221E19]">
-            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#A93E2E]`}>Loading</p>
+            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#1F4B4A]`}>Loading</p>
             <h1 className={`${FONT_DISPLAY} mt-4 text-[2rem] font-semibold sm:text-[2.4rem]`}>
               Preparing the order form
             </h1>
           </div>
         ) : ordersClosed ? (
-          <div className="rounded-[16px] border-2 border-[#221E19] bg-[#C4872C]/15 p-8 text-center shadow-[6px_6px_0_0_#221E19]">
-            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#A93E2E]`}>Orders Closed</p>
+          <div className="rounded-[16px] border-2 border-[#221E19] bg-[#A6752E]/15 p-8 text-center shadow-[6px_6px_0_0_#221E19]">
+            <p className={`${FONT_MONO} text-sm uppercase tracking-[0.24em] text-[#1F4B4A]`}>Orders Closed</p>
             <h1 className={`${FONT_DISPLAY} mt-4 text-[2rem] font-semibold sm:text-[2.4rem]`}>
               Orders are currently closed
             </h1>
@@ -811,7 +812,7 @@ export default function OrderPage() {
             <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Link
                 href="/"
-                className="inline-flex h-[44px] min-w-[190px] items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-[#C4872C] px-6 text-[14px] font-semibold text-[#221E19] shadow-[4px_4px_0_0_#221E19]"
+                className="inline-flex h-[44px] min-w-[190px] items-center justify-center rounded-[8px] border-2 border-[#221E19] bg-gradient-to-b from-[#C29A52] to-[#8F6023] px-6 text-[14px] font-semibold text-[#221E19] shadow-[4px_4px_0_0_#221E19]"
               >
                 Back Home
               </Link>
@@ -820,7 +821,7 @@ export default function OrderPage() {
         ) : (
           <div className="grid gap-8 xl:grid-cols-12">
             <div className="xl:col-span-7">
-              <div className="mx-auto flex w-fit items-center gap-2 rounded-full border-[2.5px] border-[#A93E2E] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A93E2E] lg:mx-0">
+              <div className="mx-auto flex w-fit items-center gap-2 rounded-full border-2 border-[#221E19] bg-[#1F4B4A] px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#FAF6EE] shadow-[3px_3px_0_0_#221E19] lg:mx-0">
                 Place Order
               </div>
 
@@ -843,7 +844,7 @@ export default function OrderPage() {
                   {/* PRODUCTS */}
                   <div>
                     <div className="mb-5 text-center lg:text-left">
-                      <p className={`${FONT_MONO} text-[11px] uppercase tracking-[0.22em] text-[#A93E2E]`}>
+                      <p className={`${FONT_MONO} text-[11px] uppercase tracking-[0.22em] text-[#1F4B4A]`}>
                         Products
                       </p>
                       <h2 className={`${FONT_DISPLAY} mt-2 text-[1.45rem] font-semibold`}>
@@ -881,7 +882,7 @@ export default function OrderPage() {
                     </div>
 
                     {errors.productSelections ? (
-                      <p className="mt-3 text-xs text-[#A93E2E]">{errors.productSelections}</p>
+                      <p className="mt-3 text-xs text-[#1F4B4A]">{errors.productSelections}</p>
                     ) : null}
 
                     <div className="mt-4">
@@ -900,7 +901,7 @@ export default function OrderPage() {
                   {/* CUSTOMER DETAILS */}
                   <div>
                     <div className="mb-5 text-center lg:text-left">
-                      <p className={`${FONT_MONO} text-[11px] uppercase tracking-[0.22em] text-[#A93E2E]`}>
+                      <p className={`${FONT_MONO} text-[11px] uppercase tracking-[0.22em] text-[#1F4B4A]`}>
                         Customer details
                       </p>
                       <h2 className={`${FONT_DISPLAY} mt-2 text-[1.45rem] font-semibold`}>Your information</h2>
@@ -954,7 +955,7 @@ export default function OrderPage() {
                   {/* FULFILMENT */}
                   <div>
                     <div className="mb-5 text-center lg:text-left">
-                      <p className={`${FONT_MONO} text-[11px] uppercase tracking-[0.22em] text-[#A93E2E]`}>
+                      <p className={`${FONT_MONO} text-[11px] uppercase tracking-[0.22em] text-[#1F4B4A]`}>
                         Fulfilment
                       </p>
                       <h2 className={`${FONT_DISPLAY} mt-2 text-[1.45rem] font-semibold`}>
@@ -1028,13 +1029,13 @@ export default function OrderPage() {
                         type="checkbox"
                         checked={form.agree}
                         onChange={(e) => updateField("agree", e.target.checked)}
-                        className="mt-1 h-4 w-4 rounded border-[#221E19]/30 accent-[#C4872C]"
+                        className="mt-1 h-4 w-4 rounded border-[#221E19]/30 accent-[#A6752E]"
                       />
                       <p className="text-sm text-[#221E19]/80">
                         I confirm that the information provided above is correct.
                       </p>
                     </label>
-                    {errors.agree ? <p className="mt-2 text-center text-xs text-[#A93E2E] lg:text-left">{errors.agree}</p> : null}
+                    {errors.agree ? <p className="mt-2 text-center text-xs text-[#1F4B4A] lg:text-left">{errors.agree}</p> : null}
                   </div>
 
                   <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
@@ -1045,8 +1046,8 @@ export default function OrderPage() {
                   </div>
 
                   {submitError ? (
-                    <div className="rounded-[10px] border-2 border-[#A93E2E] bg-[#A93E2E]/10 p-5">
-                      <p className="text-center text-sm font-semibold text-[#A93E2E] lg:text-left">
+                    <div className="rounded-[10px] border-2 border-[#1F4B4A] bg-[#1F4B4A]/10 p-5">
+                      <p className="text-center text-sm font-semibold text-[#1F4B4A] lg:text-left">
                         Could not save order
                       </p>
                       <p className="mt-1 text-center text-sm leading-6 text-[#221E19]/70 lg:text-left">
@@ -1063,7 +1064,7 @@ export default function OrderPage() {
               <div className="space-y-6 xl:sticky xl:top-6">
                 <div className="overflow-hidden rounded-[16px] border-2 border-[#221E19] bg-[#FFFDF8] shadow-[6px_6px_0_0_#221E19]">
                   <div className="border-b-2 border-dashed border-[#E4D9C4] p-6">
-                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#A93E2E] lg:text-left`}>
+                    <p className={`${FONT_MONO} text-center text-[11px] uppercase tracking-[0.22em] text-[#1F4B4A] lg:text-left`}>
                       Order ticket
                     </p>
                     <h2 className={`${FONT_DISPLAY} mt-2 text-center text-[1.6rem] font-semibold lg:text-left`}>
