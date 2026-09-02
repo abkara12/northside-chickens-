@@ -1,7 +1,7 @@
 {
-  "name": "Northside Qurbani",
+  "name": "Northside Chickens",
   "short_name": "Northside",
-  "description": "Northside Qurbani booking and order tracking system.",
+  "description": "Northside Chickens booking and order tracking system.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

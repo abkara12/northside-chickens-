@@ -513,10 +513,22 @@ export default function Home() {
 
       {/* NAVBAR */}
       <header className="relative z-40 mx-auto flex max-w-7xl items-center justify-between border-b-2 border-[#221E19] px-6 py-3 sm:px-10 sm:py-4">
+        {/* split background: white panel behind the logo, cream behind the nav links */}
+        <div className="pointer-events-none absolute inset-0 -z-10 flex overflow-hidden">
+          <div
+            className="h-full w-[62%] bg-[#FFFDF8] sm:w-[48%]"
+            style={{ clipPath: "polygon(0 0, 100% 0, calc(100% - 34px) 100%, 0 100%)" }}
+          />
+          <div className="h-full flex-1 bg-[#FAF6EE]" />
+        </div>
+        <div
+          className="pointer-events-none absolute inset-y-0 left-[calc(62%-34px)] -z-10 w-[3px] bg-gradient-to-b from-[#A6752E] via-[#1F4B4A] to-[#57624C] sm:left-[calc(48%-34px)]"
+        />
+
         <div className="flex items-center gap-4">
-<div className="relative h-24 w-24 shrink-0 sm:h-28 sm:w-28 mix-blend-multiply">
-  <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
-</div>
+          <div className="relative h-24 w-24 shrink-0 sm:h-28 sm:w-28">
+            <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
+          </div>
           <div className="hidden sm:block">
             <div className={`${FONT_DISPLAY} text-lg font-semibold leading-none`}>Northside Chickens</div>
             <div className={`${FONT_MONO} mt-1 text-[10px] uppercase tracking-[0.24em] text-[#221E19]/50`}>Fresh Chicken · Done Right</div>
@@ -579,9 +591,9 @@ export default function Home() {
             <div className="flex h-full flex-col p-6">
               <div className="flex items-center justify-between border-b-2 border-[#221E19] pb-5">
                 <div className="flex items-center gap-3">
-<div className="relative h-20 w-20 shrink-0 mix-blend-multiply">
-  <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
-</div>
+                  <div className="relative h-20 w-20 shrink-0 rounded-full bg-[#FFFDF8] p-1.5 shadow-[2px_2px_0_0_#221E19]">
+                    <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
+                  </div>
                   <div>
                     <div className={`${FONT_DISPLAY} text-sm font-semibold leading-tight`}>Northside Chickens</div>
                     <div className="text-xs text-[#221E19]/55">Menu</div>
@@ -934,9 +946,9 @@ Northside Chickens has built its reputation on consistent quality and straightfo
           <div className="grid gap-12 lg:grid-cols-12">
             <div className="text-center lg:col-span-4 lg:text-left">
               <div className="flex items-center justify-center gap-3 lg:justify-start">
-<div className="relative h-20 w-20 shrink-0 mix-blend-multiply">
-  <Image src="/logo4.png" alt="Northside Chickens" fill sizes="80px" className="object-contain" priority />
-</div>
+                <div className="relative h-20 w-20 shrink-0 rounded-full bg-[#FFFDF8] p-1.5">
+                  <Image src="/logo4.png" alt="Northside Chickens" fill sizes="80px" className="object-contain" priority />
+                </div>
                 <div>
                   <div className={`${FONT_DISPLAY} text-lg font-semibold text-[#FAF6EE]`}>Northside Chickens</div>
    

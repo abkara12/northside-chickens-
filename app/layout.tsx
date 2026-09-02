@@ -3,11 +3,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Northside Qurbani",
-    template: "%s | Northside Qurbani",
+    default: "Northside Chickens",
+    template: "%s | Northside Chickens",
   },
-  description: "Northside Qurbani",
-  applicationName: "Northside Qurbani",
+  description: "Northside Chickens",
+  applicationName: "Northside Chickens",
   manifest: "/manifest.webmanifest",
 
   icons: {

@@ -264,7 +264,7 @@ export default function LookupPage() {
           <div className="grid h-[78px] w-[78px] place-items-center rounded-[22px] border border-white/10 bg-white/5 shadow-[0_14px_32px_rgba(0,0,0,0.18)] backdrop-blur-xl">
             <Image
               src="/logo4.png"
-              alt="Northside Qurbani"
+              alt="Northside Chickens"
               width={65}
               height={65}
               className="object-contain"
@@ -273,7 +273,7 @@ export default function LookupPage() {
           </div>
           <div className="hidden sm:block">
             <div className="text-[1.05rem] font-semibold tracking-[-0.02em] text-white">
-              Northside Qurbani
+              Northside Chickens
             </div>
             <div className="mt-1 text-sm text-white/55">Booking lookup</div>
           </div>
