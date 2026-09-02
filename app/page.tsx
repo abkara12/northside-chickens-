@@ -514,9 +514,9 @@ export default function Home() {
       {/* NAVBAR */}
       <header className="relative z-40 mx-auto flex max-w-7xl items-center justify-between border-b-2 border-[#221E19] px-6 py-3 sm:px-10 sm:py-4">
         <div className="flex items-center gap-4">
-          <div className="relative h-24 w-24 shrink-0 sm:h-28 sm:w-28">
-            <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
-          </div>
+<div className="relative h-24 w-24 shrink-0 sm:h-28 sm:w-28 mix-blend-multiply">
+  <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
+</div>
           <div className="hidden sm:block">
             <div className={`${FONT_DISPLAY} text-lg font-semibold leading-none`}>Northside Chickens</div>
             <div className={`${FONT_MONO} mt-1 text-[10px] uppercase tracking-[0.24em] text-[#221E19]/50`}>Fresh Chicken · Done Right</div>
@@ -579,9 +579,9 @@ export default function Home() {
             <div className="flex h-full flex-col p-6">
               <div className="flex items-center justify-between border-b-2 border-[#221E19] pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="relative h-20 w-20 shrink-0">
-                    <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
-                  </div>
+<div className="relative h-20 w-20 shrink-0 mix-blend-multiply">
+  <Image src="/logo4.png" alt="Northside Chickens" fill sizes="140px" className="object-contain" priority />
+</div>
                   <div>
                     <div className={`${FONT_DISPLAY} text-sm font-semibold leading-tight`}>Northside Chickens</div>
                     <div className="text-xs text-[#221E19]/55">Menu</div>
@@ -934,9 +934,9 @@ Northside Chickens has built its reputation on consistent quality and straightfo
           <div className="grid gap-12 lg:grid-cols-12">
             <div className="text-center lg:col-span-4 lg:text-left">
               <div className="flex items-center justify-center gap-3 lg:justify-start">
-                <div className="relative h-20 w-20 shrink-0">
-                  <Image src="/logo4.png" alt="Northside Chickens" fill sizes="80px" className="object-contain" priority />
-                </div>
+<div className="relative h-20 w-20 shrink-0 mix-blend-multiply">
+  <Image src="/logo4.png" alt="Northside Chickens" fill sizes="80px" className="object-contain" priority />
+</div>
                 <div>
                   <div className={`${FONT_DISPLAY} text-lg font-semibold text-[#FAF6EE]`}>Northside Chickens</div>
    
