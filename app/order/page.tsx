@@ -29,7 +29,19 @@ const SAGE = "#57624C";
 
 const DELIVERY_FEE = 60;
 
+const CUSTOMER_KEY = "poultry_customer_profile";
+
 type Fulfilment = "collection" | "delivery";
+
+type SavedCustomer = {
+  fullName: string;
+  phone: string;
+  email: string;
+  fulfilment: Fulfilment;
+  deliveryArea: string;
+  deliveryAddress: string;
+  lastItems: { productLabel: string; quantity: number }[];
+};
 
 type ProductOption = {
   label: string;
@@ -462,6 +474,30 @@ export default function OrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
+  const [savedCustomer, setSavedCustomer] = useState<SavedCustomer | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CUSTOMER_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as SavedCustomer;
+      if (!saved?.fullName || !saved?.phone) return;
+
+      setSavedCustomer(saved);
+      setForm((prev) => ({
+        ...prev,
+        fullName: saved.fullName || "",
+        phone: saved.phone || "",
+        email: saved.email || "",
+        fulfilment: saved.fulfilment === "delivery" ? "delivery" : "collection",
+        deliveryArea: saved.deliveryArea || "",
+        deliveryAddress: saved.deliveryAddress || "",
+      }));
+    } catch (error) {
+      console.error("Could not load saved customer:", error);
+    }
+  }, []);
+
   useEffect(() => {
     const unsub = onSnapshot(
       doc(db, "settings", "poultry"),
@@ -593,6 +629,31 @@ export default function OrderPage() {
       ...prev,
       productSelections: [...prev.productSelections, { id: makeId(), productLabel: "", quantity: "1" }],
     }));
+  }
+
+  function repeatLastOrder() {
+    if (!savedCustomer?.lastItems?.length) return;
+
+    const rows = savedCustomer.lastItems
+      .filter((item) => settings.productOptions.some((o) => o.label === item.productLabel))
+      .map((item) => ({
+        id: makeId(),
+        productLabel: item.productLabel,
+        quantity: String(item.quantity),
+      }));
+
+    if (!rows.length) return;
+    setForm((prev) => ({ ...prev, productSelections: rows }));
+    setErrors((prev) => ({ ...prev, productSelections: undefined }));
+  }
+
+  function forgetCustomer() {
+    try {
+      localStorage.removeItem(CUSTOMER_KEY);
+    } catch {}
+    setSavedCustomer(null);
+    setForm(createInitialForm());
+    setErrors({});
   }
 
   function removeProductRow(id: string) {
@@ -754,6 +815,24 @@ export default function OrderPage() {
       if (typeof window !== "undefined") {
         localStorage.setItem("poultry_last_order_id", savedOrderId);
         localStorage.setItem("poultry_last_order_reference", savedOrderReference);
+
+        const customerToSave: SavedCustomer = {
+          fullName: form.fullName.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim(),
+          fulfilment: form.fulfilment,
+          deliveryArea: form.fulfilment === "delivery" ? form.deliveryArea.trim() : "",
+          deliveryAddress: form.fulfilment === "delivery" ? form.deliveryAddress.trim() : "",
+          lastItems: productBreakdown.map((row) => ({
+            productLabel: row.label,
+            quantity: row.quantity,
+          })),
+        };
+        try {
+          localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customerToSave));
+        } catch (storageError) {
+          console.error("Could not save customer details:", storageError);
+        }
       }
 
       window.location.replace(`/order/success/${savedOrderId}`);
@@ -834,6 +913,35 @@ export default function OrderPage() {
                 Choose whole chicken or cut portions, in whatever quantity you need,
                 and pick collection or delivery.
               </p>
+
+              {savedCustomer ? (
+                <div className="mt-8 rounded-[10px] border-2 border-dashed border-[#57624C] bg-[#57624C]/10 p-5">
+                  <p className={`${FONT_MONO} text-[10px] uppercase tracking-[0.24em] text-[#57624C]`}>
+                    Welcome back
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-[#221E19]">
+                    {savedCustomer.fullName}, your details are filled in.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {savedCustomer.lastItems?.length ? (
+                      <button
+                        type="button"
+                        onClick={repeatLastOrder}
+                        className="inline-flex h-10 items-center justify-center rounded-full border-2 border-[#221E19] bg-[#FFFDF8] px-5 text-xs font-semibold text-[#221E19] transition hover:bg-[#221E19] hover:text-[#FAF6EE]"
+                      >
+                        Repeat last order
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={forgetCustomer}
+                      className="inline-flex h-10 items-center justify-center rounded-full border-2 border-[#221E19]/30 bg-transparent px-5 text-xs font-medium text-[#221E19]/70 transition hover:border-[#221E19]"
+                    >
+                      Not you? Clear details
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
               <form
                 onSubmit={handleSubmit}
