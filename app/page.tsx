@@ -478,7 +478,11 @@ export default function Home() {
         const snap = await getDoc(doc(db, "orders", id));
         if (snap.exists()) {
           const data = snap.data() as any;
-          if (data?.cancelled) {
+
+          const isPaid = (data?.paymentStatus || "pending").toLowerCase() === "paid";
+          const isCompleted = !!data?.delivered && isPaid;
+
+          if (data?.cancelled || isCompleted) {
             localStorage.removeItem("poultry_last_order_id");
             localStorage.removeItem("poultry_last_order_reference");
             setSavedOrder(null);
@@ -891,8 +895,8 @@ Northside Chickens has built its reputation on consistent quality and straightfo
               question="Can I choose specific cuts or portions?"
               answer="Yes — select whole chicken or specific cuts like breasts, thighs, drumsticks, and wings through a simple online order form."
             />
-          
-    <FAQItem
+
+            <FAQItem
               question="Why use a digital platform for a chicken order?"
               answer="It makes ordering more convenient for you — you can see what's in stock, place your order from anywhere, and know exactly when it'll be ready for collection or delivery."
             />
@@ -951,7 +955,7 @@ Northside Chickens has built its reputation on consistent quality and straightfo
                 </div>
                 <div>
                   <div className={`${FONT_DISPLAY} text-lg font-semibold text-[#FAF6EE]`}>Northside Chickens</div>
-   
+
                 </div>
               </div>
             </div>
